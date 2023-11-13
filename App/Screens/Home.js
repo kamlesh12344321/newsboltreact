@@ -5,12 +5,12 @@ import {AppContext} from '../Context';
 import CommonStyle from '../Theme/CommonStyle';
 import {height, isIOS} from '../Utils/Constant';
 import axios from 'axios';
+import {BASE_URL} from '../config';
 import {data} from '../Utils/data';
 
 const Home = () => {
   const [videoData, setData] = useState([]);
-  const baseUrl =
-  'https://shorts.newsdx.io/ci/api-v3/public/videos?page=1&perPage=20&channel=143&laguages=1';
+  const [page, setPage] = useState(1);
   const {displayHeight, setDisplayHeight} = useContext(AppContext);
   const refFlatList = useRef();
   const [scrollY] = useState(new Animated.Value(0));
@@ -52,17 +52,19 @@ const Home = () => {
   };
 
   const onEndReached = () => {
-    // make api call here
+    setPage(page + 1)
+    console.log("newPage", page)
+    getMoreData(page);
   };
 
   const keyExtractor = (item, index) => {
     return `${item.id}`;
   };
 
-  const getAPi = () => {
+  const getAPi = async page => {
     axios({
       method: 'GET',
-      url: baseUrl,
+      url: BASE_URL + '/videos?languages=1' + '&page=' + `${page}`+ '&perPage=2',
       headers: {
         Authorization:
           'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNSIsInRpbWUiOjE2OTU2MzY1NDZ9.VvG9GGCcrMDn7RDUK-uyUkMY14IAju8YxJ0oVoMGn_4',
@@ -73,9 +75,30 @@ const Home = () => {
       .catch(err => console.log(err));
   };
 
+  const getMoreData = async page => {
+    console.log("page", page)
+    axios({
+      method: 'GET',
+      url: BASE_URL + '/videos?languages=1' + '&page=' + `${page}` + '&perPage=2',
+      headers: {
+        Authorization:
+          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNSIsInRpbWUiOjE2OTU2MzY1NDZ9.VvG9GGCcrMDn7RDUK-uyUkMY14IAju8YxJ0oVoMGn_4',
+      },
+    })
+      .then(res => setData(videoData.concat(res.data.data)))
+      .then(res => console.log('res', res))
+      .catch(err => console.log(err));
+  };
+
   useEffect(() => {
-    getAPi();
+    getAPi(1);
   }, []);
+
+  useEffect(() => {
+    if (page > 1) {
+      getMoreData(page);
+    }
+  }, [page]);
 
   const renderItem = ({item, index}) => {
     const scrollIndex = scrollInfo?.index || 0;
@@ -94,14 +117,13 @@ const Home = () => {
 
   return (
     <View style={CommonStyle.flexContainer} onLayout={onLayout}>
-    
       <Animated.FlatList
-       data={videoData}
-       style={{
-        backgroundColor: 'black',
-        width: '100%',
-        height: '100%',
-       }}
+        data={videoData}
+        style={{
+          backgroundColor: 'black',
+          width: '100%',
+          height: '100%',
+        }}
         pagingEnabled
         initialNumToRender={3}
         windowSize={20}
