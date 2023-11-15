@@ -85,7 +85,7 @@ const Home = () => {
           'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNSIsInRpbWUiOjE2OTU2MzY1NDZ9.VvG9GGCcrMDn7RDUK-uyUkMY14IAju8YxJ0oVoMGn_4',
       },
     })
-      .then(res => setData(videoData.concat(res.data.data)))
+      .then(res => setData([...videoData, ...res.data.data]))
       .then(res => console.log('res', res))
       .catch(err => console.log(err));
   };
